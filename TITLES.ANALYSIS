@@ -1,0 +1,94 @@
+SELECT COUNT(*) FILTER (WHERE id IS NULL) AS id_nulls,
+       COUNT(*) FILTER (WHERE type IS NULL) AS type_nulls,
+       COUNT(*) FILTER (WHERE title IS NULL) AS title_nulls,
+       COUNT(*) FILTER (WHERE age_certification IS NULL) AS age_certification_nulls,
+       COUNT(*) FILTER (WHERE runtime IS NULL) AS runtime_nulls,
+       COUNT(*) FILTER (WHERE genres IS NULL) AS genres_nulls,
+       COUNT(*) FILTER (WHERE production_countries IS NULL) AS production_countries_nulls,
+       COUNT(*) FILTER (WHERE seasons IS NULL) AS seasons_nulls,
+       COUNT(*) FILTER (WHERE release_year IS NULL) AS release_year_nulls,
+       COUNT(*) FILTER (WHERE imbd_id IS NULL) AS imbd_id_nulls,
+       COUNT(*) FILTER (WHERE imbd_score IS NULL) AS imbd_score_nulls,
+       COUNT(*) FILTER (WHERE imbd_votes IS NULL) AS imbd_votes_nulls,
+       COUNT(*) FILTER (WHERE tmbd_popularity IS NULL) AS tmbd_popularity_nulls,
+       COUNT(*) FILTER (WHERE tmbd_score IS NULL) AS tmbd_score_null
+FROM titles;
+
+SELECT *
+FROM
+(select title, genres, imbd_score, tmbd_popularity, release_year
+from titles
+WHERE type = 'MOVIE' and release_year IN (2000, 2010) 
+AND genres LIKE '%thriller%' AND production_countries LIKE '%US%') 
+as table_one
+WHERE imbd_score >= 6
+order by imbd_score desc;
+
+SELECT *
+FROM
+(select title, genres, imbd_score, tmbd_popularity, release_year
+from titles
+WHERE type = 'MOVIE' and release_year <= 2000 AND genres LIKE '%thriller%'
+AND genres LIKE '%action%' AND production_countries LIKE '%US%') as table_one
+WHERE imbd_score >= 5
+order by imbd_score desc;
+
+-- These are the top 10 movies that would be recommended to someone who is 
+-- looking to watch a korean movie that is ACTION PACKED.
+SELECT title, genres, production_countries, ROUND("imbd_votes" / "imbd_score", 2) AS 
+popularity_level,
+CASE WHEN  "imbd_votes" >= 2000 THEN 'V_POPULAR'
+WHEN "imbd_votes" >=500 THEN 'POPULAR'
+ELSE 'N_POPULAR' END AS "imbd_popularity"
+from titles
+WHERE production_countries = '[''KR'']'
+and genres not LIKE '%romance%' AND genres like '%action%'
+ORDER BY("imbd_popularity")DESC
+LIMIT 10;
+
+SELECT *
+from titles
+WHERE production_countries = '[''NG'']' 
+ORDER BY imbd_votes desc;
+
+SELECT *
+FROM titles
+(SELECT  "title", "imbd_score", "production_countries", "release_year", "genres",
+CASE WHEN  "imbd_score" >= 5 THEN 'V_POPULAR'
+ELSE 'POPULAR' END AS "movie_popularity"
+FROM "titles"
+ORDER BY("movie_popularity")DESC) AS table_one;
+
+-- select DISTINCT(imbd_votes), DISTINCT(imbd_score),
+-- CASE WHEN (avg(imbd_votes) / avg(imbd_score)) <= 700 
+-- THEN 'LARGE' 
+-- ELSE 'SMALL' END AS  "imbd_popularity"
+-- from titles;
+
+-- These movies are strictly thriller and are ordered from most to least
+-- popular, for a viewer who is looking for strictly thriller on Netflix.
+
+SELECT *
+FROM
+(SELECT "production_countries", "title", "release_year", "genres",
+CASE WHEN ("imbd_votes" / "imbd_score") >= 2000 THEN 'V_POPULAR'
+WHEN ("imbd_votes" / "imbd_score") >=500 THEN 'POPULAR'
+ELSE 'N_POPULAR' END AS "imbd_popularity"
+FROM "titles"
+WHERE genres = '[''thriller'']'
+ORDER BY("imbd_popularity")DESC) AS table_one;
+
+-- SELECT ROUND(avg("imbd_votes" / "imbd_score"), 2) as imdb_avg, 
+-- min("imbd_votes" / "imbd_score") as min_imdb,
+-- sum("imbd_votes"),
+-- min("imbd_votes"),
+-- ROUND(avg("imbd_votes"), 2),
+-- count("imbd_votes")
+-- FROM titles; 
+
+-- sum("imbd_votes" / "imbd_score") as sum_imdb,
+-- max("imbd_votes" / "imbd_score") as max_imdb,
+-- production_countries LIKE ('%US%')
+
+select max(imbd_score)
+from titles;
